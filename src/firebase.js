@@ -244,10 +244,26 @@ export async function summarizeWithAI(prompt, route, onDeviceProgress) {
     source === "on_device" ? "on-device" : source === "in_cloud" ? "cloud" : route;
   let data;
   try {
-    data = JSON.parse(text);
+    // Gemini often wraps structured output in a ```json fence even with
+    // responseSchema set; strip it before parsing, otherwise the whole raw
+    // JSON ends up displayed as the summary text (verified live 19 Nov).
+    const cleaned = text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/```\s*$/, "");
+    data = JSON.parse(cleaned);
   } catch {
-    // If the model ignored the JSON schema, keep the raw text as the summary.
-    data = { title: "Ringkasan", summary: text, keyPoints: [], actionItems: [], language: "?" };
+    // Last resort: pull the first {...} block out of the response.
+    const m = text.match(/\{[\s\S]*\}/);
+    try {
+      data = m ? JSON.parse(m[0]) : null;
+    } catch {
+      data = null;
+    }
+    if (!data) {
+      // If the model ignored the JSON schema, keep the raw text as the summary.
+      data = { title: "Ringkasan", summary: text, keyPoints: [], actionItems: [], language: "?" };
+    }
   }
   return { data, routeUsed };
 }
