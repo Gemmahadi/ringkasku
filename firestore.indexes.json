@@ -1,0 +1,1 @@
+{"fieldOverrides":[],"indexes":[{"collectionGroup":"summaries","fields":[{"fieldPath":"uid","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}],"queryScope":"COLLECTION"}]}

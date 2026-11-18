@@ -1,0 +1,1 @@
+{"firestore":{"indexes":"firestore.indexes.json","rules":"firestore.rules"},"hosting":{"headers":[{"headers":[{"key":"Cache-Control","value":"max-age=3600"}],"source":"**/*.@(js|css)"}],"ignore":["firebase.json","**/.*","**/node_modules/**"],"public":"."},"remoteconfig":{"template":"remote-config-template.json"}}

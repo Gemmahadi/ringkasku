@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The app is bilingual by design (ID/EN switcher); browser auto-translate would corrupt it. -->
+    <meta name="google" content="notranslate" />
+    <title>Ringkasku — Peringkas Catatan Bilingual (Firebase AI Logic Hybrid)</title>
+    <meta
+      name="description"
+      content="Ringkasku summarizes your notes in Indonesian or English. On-device with Gemini Nano when available, cloud Gemini fallback for long documents. Built with Firebase AI Logic Hybrid Inference."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      Firebase config is loaded from ./firebase-config.js.
+      That file ships with PLACEHOLDER values only. To deploy with a real
+      Firebase project, replace it with your own web app config (or build
+      with VITE_FIREBASE_* env vars — see .env.example and README.md).
+      Never commit production API keys or Google Cloud secrets to this repo.
+    -->
+    <script src="/firebase-config.js"></script>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">✦</span>
+        <div>
+          <h1>Ringkasku</h1>
+          <p class="tagline">Ringkasan catatan bilingual · ID / EN</p>
+        </div>
+      </div>
+      <div class="status-pills" id="statusPills" aria-live="polite">
+        <span class="pill" id="pillFirebase" title="Firebase connection status">Firebase: …</span>
+        <span class="pill" id="pillDevice" title="On-device Gemini Nano availability">On-device: …</span>
+        <span class="pill" id="pillRoute" title="Inference route used for the last summary">Route: —</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel input-panel">
+        <h2>Catatanmu</h2>
+        <p class="hint">
+          Tempel atau tulis catatan rapat, kuliah, atau artikel. Ringkasan pendek
+          dibuat <strong>on-device (Gemini Nano)</strong> bila tersedia — offline dan
+          privat. Dokumen panjang otomatis dialihkan ke <strong>cloud Gemini</strong>.
+        </p>
+
+        <label class="field">
+          <span class="field-label">Teks catatan</span>
+          <textarea
+            id="inputText"
+            rows="12"
+            maxlength="20000"
+            placeholder="Tempel catatanmu di sini… contoh: notulen rapat, materi kuliah, artikel panjang…"
+          ></textarea>
+        </label>
+        <div class="input-meta">
+          <span id="charCount">0 karakter</span>
+          <span id="routeHint">Rute: on-device (di bawah ambang cloud)</span>
+        </div>
+
+        <div class="controls">
+          <label class="field">
+            <span class="field-label">Bahasa ringkasan</span>
+            <select id="langSelect">
+              <option value="id" selected>Bahasa Indonesia</option>
+              <option value="en">English</option>
+              <option value="auto">Ikuti bahasa catatan</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Panjang</span>
+            <select id="lengthSelect">
+              <option value="short">Singkat (3–5 kalimat)</option>
+              <option value="medium" selected>Sedang (paragraf + poin)</option>
+              <option value="detailed">Detail (2 paragraf + aksi)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Gaya</span>
+            <select id="styleSelect">
+              <option value="bullets" selected>Poin-poin</option>
+              <option value="paragraph">Paragraf</option>
+              <option value="study">Catatan belajar (definisi + contoh)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="summarizeBtn" class="btn primary">✦ Ringkas</button>
+          <button id="sampleIdBtn" class="btn ghost" type="button">Contoh (ID)</button>
+          <button id="sampleEnBtn" class="btn ghost" type="button">Sample (EN)</button>
+          <button id="clearBtn" class="btn ghost" type="button">Bersihkan</button>
+          <label class="btn ghost file-btn">
+            📄 Unggah .txt / .md
+            <input type="file" id="fileInput" accept=".txt,.md,text/plain,text/markdown" hidden />
+          </label>
+        </div>
+
+        <div id="deviceProgress" class="progress" hidden>
+          <div class="progress-bar"><div id="deviceProgressFill"></div></div>
+          <span id="deviceProgressText">Mengunduh model on-device…</span>
+        </div>
+        <p id="statusLine" class="status-line" aria-live="polite"></p>
+
+        <details class="how">
+          <summary>Bagaimana cara kerjanya?</summary>
+          <ol>
+            <li><strong>On-device dulu:</strong> Firebase AI Logic <code>PREFER_ON_DEVICE</code> memakai Gemini Nano di Chrome desktop (v139+) — tanpa biaya, bisa offline.</li>
+            <li><strong>Fallback cloud:</strong> kalau Nano tidak tersedia, atau dokumen melewati ambang <code>cloud_threshold_chars</code> (Remote Config), ringkasan dibuat cloud Gemini 2.5 Flash.</li>
+            <li><strong>Tersimpan:</strong> ringkasan tersimpan di Cloud Firestore (riwayat di bawah) dan dapat dibuka lagi kapan saja.</li>
+            <li><strong>Dikonfigurasi jarak jauh:</strong> panjang default, ambang cloud, dan pesan sambutan diatur lewat Firebase Remote Config — tanpa rilis ulang.</li>
+            <li><strong>Dilindungi:</strong> App Check (debug provider untuk localhost, reCAPTCHA v3 untuk produksi) menjaga endpoint AI Logic.</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="panel output-panel">
+        <h2>Ringkasan</h2>
+        <div id="emptyState" class="empty-state">
+          <p class="empty-icon">📝</p>
+          <p>Belum ada ringkasan.<br />Tulis catatanmu, lalu tekan <strong>Ringkas</strong>.</p>
+          <p class="empty-note" id="welcomeMessage"></p>
+        </div>
+        <article id="resultCard" class="result" hidden>
+          <div class="result-head">
+            <h3 id="resultTitle"></h3>
+            <span class="badge" id="resultRouteBadge"></span>
+          </div>
+          <p id="resultSummary" class="result-summary"></p>
+          <div id="resultKeyPointsWrap">
+            <h4>Poin penting</h4>
+            <ul id="resultKeyPoints"></ul>
+          </div>
+          <div id="resultActionsWrap">
+            <h4>Yang perlu dilakukan</h4>
+            <ul id="resultActions"></ul>
+          </div>
+          <div class="result-foot">
+            <span id="resultMeta"></span>
+            <span id="resultSaved"></span>
+          </div>
+          <div class="result-actions">
+            <button id="copyBtn" class="btn small" type="button">📋 Salin ringkasan</button>
+            <button id="downloadBtn" class="btn small" type="button">⬇ Unduh .md</button>
+          </div>
+        </article>
+      </section>
+
+      <aside class="panel history-panel">
+        <h2>Riwayat <span class="count" id="historyCount"></span></h2>
+        <p class="hint" id="historyHint">Ringkasan tersimpan muncul di sini (Firestore).</p>
+        <ul id="historyList" class="history-list"></ul>
+        <p id="historyEmpty" class="history-empty">Belum ada riwayat tersimpan.</p>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <p>
+        <strong>Ringkasku</strong> · Dibangun untuk
+        <a href="https://firebasehybridaihackathon.devpost.com/" target="_blank" rel="noopener">#BuildHybridAI 2026</a>
+        dengan Firebase AI Logic Hybrid Inference (Gemini Nano on-device + Gemini cloud),
+        Cloud Firestore, Remote Config, dan App Check. Kode sumber berlisensi Apache-2.0.
+      </p>
+      <p class="footer-note" id="configNote"></p>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
