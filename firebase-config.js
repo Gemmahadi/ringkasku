@@ -1,28 +1,24 @@
 /**
  * Ringkasku — Firebase web app configuration.
  *
- * PLACEHOLDER ONLY. Replace these values with your own Firebase project's
- * web app config (Firebase console → Project settings → Your apps → Web app).
+ * REAL project config for the "ringkasku" Firebase project (Spark plan,
+ * created 18 Nov 2026 for the #BuildHybridAI submission). The apiKey and
+ * reCAPTCHA site key below are public client identifiers — they ship in
+ * the web bundle by design. Real security comes from Firestore rules,
+ * App Check enforcement and Anonymous Auth, not from hiding these values.
  *
- * DO NOT commit production API keys or Google Cloud secrets to this repo.
- * For deployment, either edit this file on the deploy machine or inject
- * the config via environment variables at build/serve time — see README.md
- * and .env.example.
- *
- * To get a real config:
- *   1. Create a Firebase project at https://console.firebase.google.com
- *   2. Add a Web app, enable AI Logic (Gemini Developer API), Firestore,
- *      Remote Config, App Check, and Anonymous Auth.
- *   3. Paste the config object here.
+ * App Check uses the reCAPTCHA Enterprise provider: the Firebase console
+ * no longer accepts new reCAPTCHA Classic (v3) registrations, so the app
+ * was registered with the Fraud Defense (Enterprise) provider instead.
  */
 window.__FIREBASE_CONFIG__ = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyBKOIkSPpz7fZPL9ABub8exog-2ZcY45SU",
+  authDomain: "ringkasku.firebaseapp.com",
+  projectId: "ringkasku",
+  storageBucket: "ringkasku.firebasestorage.app",
+  messagingSenderId: "409614680711",
+  appId: "1:409614680711:web:1e7f8b08c91227a89dae22",
   measurementId: "",
-  // reCAPTCHA v3 site key for App Check in production (optional for local demo).
-  recaptchaSiteKey: "",
+  // reCAPTCHA Enterprise site key for App Check in production (optional for local demo).
+  recaptchaSiteKey: "6LdK3yUuAAAAAALy5shEFkk6aaQP1tfwGtM10UOw",
 };

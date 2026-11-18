@@ -17,7 +17,7 @@ to **SLAY HACKS 2026**. License: **Apache-2.0**.
 |---|---|
 | Built with Firebase AI Logic **Hybrid Inference SDK** | `getGenerativeModel(ai, { model: "gemini-2.5-flash", mode: InferenceMode.PREFER_ON_DEVICE })` — Nano on-device when available, seamless cloud fallback otherwise. Long docs use a second `ONLY_IN_CLOUD` model. |
 | On-device via Gemini Nano | Chrome desktop 139+ Prompt API; `model.initializeDeviceModel()` is called on the user's click (user-activation requirement) with a download-progress bar. |
-| Also uses other Firebase products | **Cloud Firestore** (saved summaries, per-user), **Remote Config** (length default, max chars, cloud threshold, welcome message), **App Check** (reCAPTCHA v3 prod / debug provider localhost), **Anonymous Auth** (per-device history). |
+| Also uses other Firebase products | **Cloud Firestore** (saved summaries, per-user), **Remote Config** (length default, max chars, cloud threshold, welcome message), **App Check** (reCAPTCHA Enterprise prod / debug provider localhost), **Anonymous Auth** (per-device history). |
 | Public repo + open-source license | This repo, Apache-2.0. |
 | Demo video (≤ 3 min) | `../video/ringkasku-demo.mp4` (also linked in the submission text). |
 | Hosted demo URL | Deploy with `firebase deploy --only hosting` (see below) — needs a real Firebase project (see **Setup**). |
@@ -72,7 +72,7 @@ enough disk space for the first Nano model download.
    API** provider — free tier), which also enforces App Check.
 3. Enable **Firestore** (production mode), **Remote Config**, **App Check**,
    and **Authentication → Anonymous**.
-4. In App Check, add a **reCAPTCHA v3** site key and register it; for local
+4. In App Check, add a **reCAPTCHA Enterprise** site key and register it; for local
    development, the app sets `self.FIREBASE_APPCHECK_DEBUG_TOKEN = true` on
    localhost — copy the debug token from the browser console and register it
    under App Check → Apps → Manage debug tokens.

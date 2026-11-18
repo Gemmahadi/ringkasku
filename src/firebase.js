@@ -6,7 +6,7 @@
  *    `InferenceMode.PREFER_ON_DEVICE`, cloud fallback Gemini 2.5 Flash.
  *  - Cloud Firestore: saved summaries (per anonymous user).
  *  - Remote Config: summary defaults, cloud threshold, welcome message.
- *  - App Check: reCAPTCHA v3 in production, debug provider on localhost.
+ *  - App Check: reCAPTCHA Enterprise in production, debug provider on localhost.
  *  - Anonymous Auth: gives each device a stable uid for its own history.
  *
  * CONFIG: read from (in order)
@@ -19,7 +19,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import {
   initializeAppCheck,
-  ReCaptchaV3Provider,
+  ReCaptchaEnterpriseProvider,
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app-check.js";
 import {
   getAuth,
@@ -130,7 +130,7 @@ export function initFirebase() {
   if (!isConfigured) return { configured: false };
   app = initializeApp(firebaseConfig);
 
-  // App Check: reCAPTCHA v3 in production; debug provider on localhost.
+  // App Check: reCAPTCHA Enterprise in production; debug provider on localhost.
   // (Set self.FIREBASE_APPCHECK_DEBUG_TOKEN = true BEFORE initializeAppCheck
   // on localhost, then register the printed debug token in the console.)
   try {
@@ -140,7 +140,7 @@ export function initFirebase() {
     }
     if (firebaseConfig.recaptchaSiteKey) {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(firebaseConfig.recaptchaSiteKey),
+        provider: new ReCaptchaEnterpriseProvider(firebaseConfig.recaptchaSiteKey),
         isTokenAutoRefreshEnabled: true,
       });
     }
