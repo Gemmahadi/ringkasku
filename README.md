@@ -6,8 +6,7 @@
 > offline, free); long documents are routed to **cloud Gemini**. Summaries are
 > saved to Cloud Firestore and the app's behaviour is tuned via Remote Config.
 
-Built for **#BuildHybridAI 2026** (Devpost × Google Firebase) and also submitted
-to **SLAY HACKS 2026**. License: **Apache-2.0**.
+Built for **#BuildHybridAI 2026** (Devpost × Google Firebase). License: **Apache-2.0**.
 
 ---
 
